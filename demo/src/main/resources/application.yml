@@ -17,3 +17,8 @@ spring:
     console:
       enabled: true
       path: /h2-console
+
+jwt:
+  #change the secret key to a random string
+  secret: this-need-a-very-long-random-string-for-jwt-token
+  expiration-ms: 3600000
