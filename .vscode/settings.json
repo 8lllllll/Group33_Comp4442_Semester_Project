@@ -1,0 +1,9 @@
+{
+  "java.import.exclusions": [],
+  "java.project.sourcePaths": [
+    "demo/src/main/java",
+    "demo/src/test/java"
+  ],
+  "java.project.outputPath": "demo/target/classes",
+  "java.configuration.updateBuildConfiguration": "automatic"
+}
