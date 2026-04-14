@@ -26,7 +26,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/hello", "/h2-console/**").permitAll() //public endpoints
                         .requestMatchers(HttpMethod.POST, "/users").permitAll() //public endpoints
-                        .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN") //protected endpoints with ADMIN role
+                        .requestMatchers(HttpMethod.GET, "/users", "/access").hasRole("ADMIN") //protected endpoints with ADMIN role
+                        .requestMatchers(HttpMethod.GET, "/profile").authenticated() //authenticated user profile endpoint
                         .anyRequest().authenticated()) //any other request need to be authenticated
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));

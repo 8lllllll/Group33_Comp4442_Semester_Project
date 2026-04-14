@@ -1,7 +1,10 @@
 package com.example.demo;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +34,31 @@ public class UserController {
     @GetMapping("/users")
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    @GetMapping("/access")
+    public List<LoginAccessLog> getLoginAccessLogs() {
+        return loginAccessLogRepository.findAll(Sort.by(Sort.Direction.DESC, "loginTime"));
+    }
+
+    @GetMapping("/profile")
+    public ProfileResponse getMyProfile(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username);
+
+        if (user == null) {
+            return null;
+        }
+
+        List<LoginAccessLogItem> loginRecords = loginAccessLogRepository.findByUsernameOrderByLoginTimeDesc(username)
+                .stream()
+                .map(log -> new LoginAccessLogItem(
+                        log.getLoginTime(),
+                        log.isSuccess(),
+                        log.getMessage()))
+                .collect(Collectors.toList());
+
+        return new ProfileResponse(user.getId(), user.getUsername(), user.getRole(), loginRecords);
     }
     //create a user at powershell terminal
     //Invoke-RestMethod -Method POST -Uri "http://localhost:9001/api/users" `
@@ -117,6 +145,88 @@ public class UserController {
 
         public void setToken(String token) {
             this.token = token;
+        }
+    }
+
+    public static class ProfileResponse {
+        private Long id;
+        private String name;
+        private String role;
+        private List<LoginAccessLogItem> loginRecords;
+
+        public ProfileResponse(Long id, String name, String role, List<LoginAccessLogItem> loginRecords) {
+            this.id = id;
+            this.name = name;
+            this.role = role;
+            this.loginRecords = loginRecords;
+        }
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
+        }
+
+        public List<LoginAccessLogItem> getLoginRecords() {
+            return loginRecords;
+        }
+
+        public void setLoginRecords(List<LoginAccessLogItem> loginRecords) {
+            this.loginRecords = loginRecords;
+        }
+    }
+
+    public static class LoginAccessLogItem {
+        private java.time.LocalDateTime loginTime;
+        private boolean success;
+        private String message;
+
+        public LoginAccessLogItem(java.time.LocalDateTime loginTime, boolean success, String message) {
+            this.loginTime = loginTime;
+            this.success = success;
+            this.message = message;
+        }
+
+        public java.time.LocalDateTime getLoginTime() {
+            return loginTime;
+        }
+
+        public void setLoginTime(java.time.LocalDateTime loginTime) {
+            this.loginTime = loginTime;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
         }
     }
 }
