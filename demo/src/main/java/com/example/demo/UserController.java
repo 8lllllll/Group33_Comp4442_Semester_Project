@@ -11,10 +11,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final LoginAccessLogRepository loginAccessLogRepository;
     private final JwtUtil jwtUtil;
 
-    public UserController(UserRepository userRepository, JwtUtil jwtUtil) {
+    public UserController(
+            UserRepository userRepository,
+            LoginAccessLogRepository loginAccessLogRepository,
+            JwtUtil jwtUtil) {
         this.userRepository = userRepository;
+        this.loginAccessLogRepository = loginAccessLogRepository;
         this.jwtUtil = jwtUtil;
     }
 
@@ -45,15 +50,27 @@ public class UserController {
         User user = userRepository.findByUsername(request.getUsername());
 
         if (user == null) {
+            saveLoginAccessLog(request.getUsername(), null, false, "User not found");
             return new LoginResponse("User not found", null);
         }
 
         if (!user.getPassword().equals(request.getPassword())) {
+            saveLoginAccessLog(user.getUsername(), user.getRole(), false, "Invalid password");
             return new LoginResponse("Invalid password", null);
         }
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
+        saveLoginAccessLog(user.getUsername(), user.getRole(), true, "Login successful");
         return new LoginResponse("Login successful", token);
+    }
+
+    private void saveLoginAccessLog(String username, String role, boolean success, String message) {
+        LoginAccessLog log = new LoginAccessLog();
+        log.setUsername(username == null ? "UNKNOWN" : username);
+        log.setRole(role);
+        log.setSuccess(success);
+        log.setMessage(message);
+        loginAccessLogRepository.save(log);
     }
 
     public static class LoginRequest {
