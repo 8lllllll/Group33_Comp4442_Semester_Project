@@ -24,6 +24,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Allow frontend static page/resources without authentication
+                        .requestMatchers(HttpMethod.GET,
+                                "/", "/index.html",
+                                "/favicon.ico",
+                                "/**/*.html", "/**/*.css", "/**/*.js",
+                                "/**/*.png", "/**/*.jpg", "/**/*.jpeg", "/**/*.svg", "/**/*.webp"
+                        ).permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/login", "/hello", "/h2-console/**").permitAll() //public endpoints
                         .requestMatchers(HttpMethod.POST, "/users").permitAll() //public endpoints
                         .requestMatchers(HttpMethod.GET, "/users", "/access").hasRole("ADMIN") //protected endpoints with ADMIN role

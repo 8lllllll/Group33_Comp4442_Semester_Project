@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -74,22 +75,22 @@ public class UserController {
     //-ContentType "application/json" `
     //-Body '{"username":"test","password":"test123"}'
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername());
 
         if (user == null) {
             saveLoginAccessLog(request.getUsername(), null, false, "User not found");
-            return new LoginResponse("User not found", null);
+            return ResponseEntity.status(401).body(new LoginResponse("User not found", null));
         }
 
         if (!user.getPassword().equals(request.getPassword())) {
             saveLoginAccessLog(user.getUsername(), user.getRole(), false, "Invalid password");
-            return new LoginResponse("Invalid password", null);
+            return ResponseEntity.status(401).body(new LoginResponse("Invalid password", null));
         }
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
         saveLoginAccessLog(user.getUsername(), user.getRole(), true, "Login successful");
-        return new LoginResponse("Login successful", token);
+        return ResponseEntity.ok(new LoginResponse("Login successful", token));
     }
 
     private void saveLoginAccessLog(String username, String role, boolean success, String message) {
