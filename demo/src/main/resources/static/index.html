@@ -194,7 +194,10 @@
           <input id="password" type="password" placeholder="Enter password" autocomplete="current-password" />
         </div>
 
-        <button id="loginBtn" type="button">Login</button>
+        <div class="button-row">
+          <button id="loginBtn" type="button">Login</button>
+          <button id="registerBtn" type="button">Register</button>
+        </div>
         <div id="loginMessage" class="message"></div>
       </div>
     </section>
@@ -282,6 +285,7 @@
     const passwordInput = document.getElementById("password");
     const loginBtn = document.getElementById("loginBtn");
     const loginMessage = document.getElementById("loginMessage");
+    const registerBtn = document.getElementById("registerBtn");
 
     const dashboardMessage = document.getElementById("dashboardMessage");
     const profilePanel = document.getElementById("profilePanel");
@@ -461,6 +465,45 @@
       }
     }
 
+    // Handle register action and create a new USER account.
+    async function handleRegister() {
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!username || !password) {
+        showMessage(loginMessage, "Please enter both username and password.", "error");
+        return;
+      }
+
+      showMessage(loginMessage, "Registering...", null);
+      try {
+        const response = await fetch(`${API_BASE}/users`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ username, password, role: "USER" })
+        });
+
+        let payload = {};
+        try {
+          payload = await response.json();
+        } catch (e) {
+          payload = {};
+        }
+
+        if (!response.ok) {
+          const message = payload.message || "Register failed. Please try again.";
+          showMessage(loginMessage, message, "error");
+          return;
+        }
+
+        showMessage(loginMessage, "Register successful. You can now login.", "success");
+      } catch (error) {
+        showMessage(loginMessage, "Unable to connect to server.", "error");
+      }
+    }
+
     function renderProfile(data) {
       const id = data?.id ?? "-";
       const name = data?.name ?? data?.username ?? "-";
@@ -581,6 +624,7 @@
 
     // Attach UI event handlers.
     loginBtn.addEventListener("click", handleLogin);
+    registerBtn.addEventListener("click", handleRegister);
     viewProfileBtn.addEventListener("click", loadProfile);
     refreshBtn.addEventListener("click", loadAccessLogs);
     logoutBtn.addEventListener("click", handleLogout);
