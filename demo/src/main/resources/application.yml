@@ -17,7 +17,7 @@ spring:
     console:
       enabled: true
       path: /h2-console
-      setting:
+      settings:
         web-allow-others: true
 
 jwt:
