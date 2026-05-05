@@ -67,6 +67,7 @@ public class UserController {
     //-Body '{"username":"test","password":"test123","role":"USER"}'
     @PostMapping("/users")
     public User createUser(@RequestBody User user) {
+        user.setRole("USER");
         return userRepository.save(user);
     }
     
